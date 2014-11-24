@@ -102,7 +102,15 @@ function mauikeywordextractor_analyzer($context, $analysis, $params) {
 
   
   
-  file_put_contents("$dir/$file", $analysis);
+   // send out content into a text file 
+
+  if (isset($_POST['analyzers'])) {
+    $content = $_POST['body'];
+    $file = fopen("/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/content.txt", "w");
+    fwrite($file, $content);
+    fclose($file);
+    //  print_r(error_get_last());
+  }
    return $analysis;
 }
 
@@ -116,226 +124,29 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
      * Run maui from drupal
      * 
      */    
-    echo exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/* maui.main.MauiModelBuilder -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge -m test -v none");
-    echo exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/*  maui.main.MauiTopicExtractor -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
-   
+     /*
+   * Run maui from drupal
+   * 
+   */
+  $lf = fopen("/tmp/log.txt", "w"); //error log
 
-/*
-
- * Merge all .key files into a single files
- * 
- * 
- *  */
   
-  
-  
-  //$files = glob("/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/*.key");
-
-/*print all the file information  in a directory
- * 
- * 
- * 
-foreach (glob("/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/emailcfp00*.key") as $filename) {
-    echo "$filename size " . filesize($filename) . "\n";
-}
-?>*/
  
+  exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/* maui.main.MauiModelBuilder -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
+  exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/*  maui.main.MauiTopicExtractor -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
 
- //$out = fopen("newfile.key", "w");// out is  merged file 
- /* $out = fopen("new.key", "w");// out is  merged file
- // echo $out;
- foreach($files as $file){
-      $handle = fopen($file, "r");// handle input files ,reading input file
-        
-      $fullLine="";
-                  while ($vocable = fgets($handle)) { 
-                                                        
-                   $fullLine .= trim($vocable). ","; //trim() removes newline from a line of a file    
-                         
-                  }
-              
-                  /*for each .txt file it creates one row with new line
-                   * rtrim() used for removing comma, tabs ,newlines etc at the end of a line 
-                   * */
-                                            
-                  
-                //  $row=  rtrim($fullLine,',')."\n";
-                                                                    
-                 // fwrite($out,$row);
-                     
-             
- //  }
-      
-     //fclose($handle);//close input handler
-
-  //fclose($out);
   
-  
-  
-      //$files['module_path'] = './' . drupal_get_path('module', 'mauikeywordextractor') . '/lib/class.autokeyword.php';
-   
-       $files['module_path'] = './' . drupal_get_path('module', 'mauikeywordextractor') .exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/* maui.main.MauiModelBuilder -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge -m test -v none");
-
-      
-      
-      /* if (module_exists('libraries') && ($p = libraries_get_path('autokeyword'))) {
-      $files['libraries_path'] = './' . $p . '/class.autokeyword.php';
-      } */
-    foreach ($files as $f) {
-        if (file_exists($f)) {
-            $file = $f;
-            break;
-        }
-    }
-
-    if (!$file) {
-        $msg = t('The Keyword Analysis module requires class.autokeyword.php. ');
-//        $msg .= l(t('Download the class here.'), 'http://www.phpclasses.org/package/3245-PHP-Automatically-suggest-keywords-from-content-text.html', array('attributes' => array('target' => '_phptextstats')));
-//        $msg .= "<br><br>";
-//        if ($files['libraries_path']) {
-//            $msg .= t(' Download the files and place them in a folder named "autokeyword" under the libraries directory; %path.', array(
-//                '%path' => $files['libraries_path'],
-//                    )
-//            );
-//        } else {
-//            $msg .= t(' Download the files and place them in a folder named "lib" under the keyword analysis module directory; %path.', array(
-//                '%path' => $files['module_path'],
-//                    )
-//            );
-//        }
-
-
-        if ($analysis) {
-            $analysis['messages'][] = contentanalysis_format_message($msg, 'error');
-        } else {
-            drupal_set_message($msg, 'error');
-        }
-        return FALSE;
-    }
-      include DRUPAL_ROOT . '/' . ($file);
-
-   
-    
-    
-     
-    //include_once ($file);
-
-
-    $params['content'] = $context['body'];
-    $params['min_word_length'] = 4; //minimum length of single words
-
-    $params['min_word_occur'] = 2; //minimum occur of single words
-
-
-    $params['min_2words_length'] = 3; //minimum length of words for 2 word phrases
-
-    $params['min_2words_phrase_length'] = 10; //minimum length of 2 word phrases
-
-    $params['min_2words_phrase_occur'] = 2; //minimum occur of 2 words phrase
-
-
-    $params['min_3words_length'] = 3; //minimum length of words for 3 word phrases
-
-    $params['min_3words_phrase_length'] = 10; //minimum length of 3 word phrases
-
-    $params['min_3words_phrase_occur'] = 2; //minimum occur of 3 words phrase 
-
-    $keyword = new autokeyword($params, "iso-8859-1");
-//dsm($keyword);
-    $term_vals = array();
-
-    $terms1 = explode(', ', $keyword->parse_words());
-    $terms2 = explode(', ', $keyword->parse_2words());
-    $terms3 = explode(', ', $keyword->parse_3words());
-    foreach ($terms1 as $term) {
-        if (trim($term)) {
-            $c = preg_match_all("/\b" . $term . "\b/i", $params['content'], $matches);
-            $term_vals[$term] = $c;
-        }
-    }
-    foreach ($terms2 as $term) {
-        if (trim($term)) {
-            $c = preg_match_all("/\b" . $term . "\b/i", $params['content'], $matches);
-            $term_vals[$term] = $c * 2.5;
-        }
-    }
-    foreach ($terms3 as $term) {
-        if (trim($term)) {
-            $c = preg_match_all("/\b" . $term . "\b/i", $params['content'], $matches);
-            $term_vals[$term] = $c * 7.5;
-        }
-    }
-    arsort($term_vals);
-    $terms = array();
-    $i = 1;
-    foreach ($term_vals as $k => $v) {
-        $terms[] = array(
-            'term' => $k,
-            'relevance' => $v,
-        );
-        if ($i++ >= 20) {
-            break;
-        }
-        
-    }
-
-    return $terms;
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-/*
-function mauikeywordextractor_yahoo($context, &$analysis = NULL) {
-//echo "seterms_extract_tags_api($context)";
-
-
-  $content = urlencode($context['page_title'] . "\n" . $context['body']);
-
-  $url = 'http://search.yahooapis.com/ContentAnalysisService/V1/termExtraction';
-  $appid = variable_get('seterms_yahoo_appid', '');
-  if (!$appid) {
-    drupal_set_message('Cannot extract terms. No Yahoo! Application ID set. ' . l(t('Click here to set your App ID'), 'admin/config/seterms'), 'warning');
-    return;
-  }
-
-  $output = 'php';
-
-  if (!$content) {
-    drupal_set_message('No content to extract from.', 'error');
-    return;
-  }
-
-  $url = $url . '?appid=' . $appid . '&output=' . $output . '&context=' . $content;
-
-  $ch = curl_init();
-
-  $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-  curl_setopt( $ch, CURLOPT_POSTFIELDS, 'appid=' . $appid . '&output=' . $output . '&context=' . $context );
-  //echo 'appid=' . $appid . '&output=' . $output . '&context=' . $context;
-
-  $res = curl_exec($ch);
-  curl_close($ch);
-
-  $res = unserialize($res);
-  dsm($res);
+  // get te file content into drupal
+  $filename = "/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/content.key";
+  fwrite($lf, "full-content: " . file_get_contents($filename));
   $terms = array();
-
-  if (is_array($res['ResultSet']['Result'])) {
-    foreach ($res['ResultSet']['Result'] as $key => $term) {
-      $terms[] = $term;
-      //$ret['options_html'] .= "<option value=\"$term\">$term</option>\n";
-
-    }
+  $handle = fopen($filename, "r"); // handle input files ,reading input file
+  while ($line = fgets($handle)) {
+    fwrite($lf, "line: " . $line );
+    array_push($terms, $line);
   }
-  else {
-    return FALSE;
-  }
+  fclose($handle);
+  fclose($lf);
 
   return $terms;
 }
