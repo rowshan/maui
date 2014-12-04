@@ -4,7 +4,7 @@ description = "Example Content Analyzer module"
 package = Content analysis
 dependencies[] = contentanalysis
 dependencies[] = rules
-dependencies[] = rules
+dependencies[] = rules autotag
 dependencies[] = taxonomy
 files[] = modules/rules_autotag/rules_autotag.test
 files[] = mauikeywordextractor.module
@@ -15,3 +15,4 @@ version = "7.x-1.0-beta6"
 core = "7.x"
 project = "contentanalysis"
 datestamp = "1371477651"
+
