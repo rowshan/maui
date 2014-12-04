@@ -147,6 +147,21 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
   }
   fclose($handle);
   fclose($lf);
+  
+  /*
+  *Steps I need to follow:
+  * create a vocabulary  see website
+  * save vocab. to db
+  * load it from db --> so that you can get its new id
+  * 
+  * for each term in $terms>
+  * create a term with term as $name and id of vocab. that you just created
+  * -save the term
+  */
+  
+  
+  
+  
 
   return $terms;
 }
