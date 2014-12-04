@@ -159,6 +159,55 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
   * -save the term
   */
   
+  module_load_include('inc', 'taxonomy', 'taxonomy.module');
+  module_load_include('inc', 'rules', 'rules_autotag.module');
+  
+  function rules_autotag_extract($text, $vocabulary) {
+  $extracted_tids = array();// an array for extracted term IDs
+  $terms = rules_autotag_get_term_names($vocabulary);
+
+  $text = rules_autotag_clean_text($text);//Converts term names to lower case.
+
+  // array_flip converts values of the into keys and keys into values
+  
+  $text_tokens = array_flip(rules_autotag_split_text($text)); 
+  
+  // array_intersect_key returns an array containing common keys among two or more arrays
+  
+    $matchings_term_splits = array_intersect_key($terms, $text_tokens);// here $term and $ text_tokens are two arrays.
+  //we compare these two arrays and find the common or intersection  terms 
+
+  // Loops over all matched splits and checks if a term name consists
+  // of multiple splits. If so, an additional text parsing for the whole
+  // term name is performed.
+  foreach ($matchings_term_splits as $results) { // iterate through each and every keys  in the array $matchings_term_splits
+    foreach ($results as $result) {// and search for an matched term in the array results[] and return that immediately
+      $tid = $result['tid'];// assigns term ID to array key term IDs 
+      
+      /* ata first it checks whether the term IDs exists in the extracted term. 
+       * Then if array  result has key= splitted. Then it checks
+       * what is the position of the key 'original_term_name' is exists in the
+       * the array $text and then if the key found then it assigns to the extracted term IDs
+       * Otherwise it assigns extracted term IDs directly to the term IDs once it found the term ID after in_array check       
+       */
+      /*  */
+      
+      if (!in_array($tid, $extracted_tids)) { // in_array checks whether the term ID exists in array $extracted_tids 
+        if ($result['splitted']) {
+          if (strpos($text, $result['original_term_name']) !== FALSE) {
+            $extracted_tids[] = $tid;
+          }
+        }
+        else {
+          $extracted_tids[] = $tid;
+        }
+      }
+    }
+  }
+  return $extracted_tids;
+}
+  
+  
   
   
   
