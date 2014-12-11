@@ -162,7 +162,15 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
   module_load_include('inc', 'taxonomy', 'taxonomy.module');
   module_load_include('inc', 'rules', 'rules_autotag.module');
   
-  function rules_autotag_extract($text, $vocabulary) {
+  $mauikeywordextractor= rules_autotag_exact($terms,$terms);// I tried to pass same terms as text and vocabulary 
+  
+  
+  return $terms;
+}
+
+
+
+function rules_autotag_extract($text, $vocabulary) {
   $extracted_tids = array();// an array for extracted term IDs
   $terms = rules_autotag_get_term_names($vocabulary);
 
@@ -206,12 +214,3 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
   }
   return $extracted_tids;
 }
-  
-  
-  
-  
-  
-
-  return $terms;
-}
-
