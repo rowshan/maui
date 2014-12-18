@@ -1,55 +1,54 @@
 <?php
 
+// $Id: mauikeywordextractor.module,v 1.6 2010/05/09 19:55:26 tomdude48 Exp $
+
 /**
  * @file
  * An example content analyzer using the Content Analysis API
  */
-
-/**
- * Implements hook_menu().
-  ().
- */
 function mauikeywordextractor_menu() {
-    $items = array();
+  $items = array();
 
-    $items['admin/settings/mauikeywordextractor'] = array(
-        'title' => 'Search engine terms',
-        'description' => 'Get keywords from search engines.',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('mauikeywordextractor_admin_settings'),
-        'access callback' => 'user_access',
-        'access arguments' => array('admin content analysis'),
-        'type' => MENU_NORMAL_ITEM,
-        'file' => 'mauikeywordextractor.admin.inc',
-    );
+  $items['admin/settings/mauikeywordextractor'] = array(
+    'title' => 'Search engine terms',
+    'description' => 'Get keywords from search engines.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mauikeywordextractor_admin_settings'),
+    'access callback' => 'user_access',
+    'access arguments' => array('admin content analysis'),
+    'type' => MENU_NORMAL_ITEM,
+      //'file' => 'mauikeywordextractor.admin.inc',
+  );
 
 
-    return $items;
+  return $items;
 }
 
 /**
  *  Implentation of hook_contentanalysis_analyzers()
- *  register kwanalysis with contentanalysis analyzers registry
+ *  register contentanalysisexample with contentanalysis analyzers registry
  */
 function mauikeywordextractor_contentanalysis_analyzers() {
-    $analyzers['mauikeywordextractor'] = array(
-        'title' => t('Maui Keyword Extractor'),
-        'module' => 'mauikeywordextractor',
-        'callback' => 'mauikeywordextractor_analyzer',
-        //'form elements callback' => 'kwanalysis_analyzer_form_elements',
-        //'node form submit callback' => 'kwanalysis_node_form_submit',
-        'weight' => -5
-    );
-    return $analyzers;
+  $analyzers['mauikeywordextractor'] = array(
+    'title' => t('MAUI Keyword Extractor'),
+    'module' => 'mauikeywordextractor',
+    'callback' => 'mauikeywordextractor_analyzer',
+    //'form elements callback' => 'mauikeywordextractor_analyzer_form_elements',
+    //'node form submit callback' => 'mauikeywordextractor_node_form_submit',
+    'weight' => -5,
+  );
+  return $analyzers;
 }
 
+
+
+
 /**
- * Implements hook_analyzer() via custom define callback
-  ().
- *
- * Performs the analysis.
+ * Implementation of hook_analyzer() via custom define callback
+ * 
+ * Performs the analysis. 
  * callback is defined in hook_contentanalysis_analyzers ['callback']
- *
+ * 
  * @param unknown_type $context
  *   Array context format defined by contentanalysis.module
  * @param unknown_type $analysis
@@ -59,59 +58,51 @@ function mauikeywordextractor_contentanalysis_analyzers() {
  */
 function mauikeywordextractor_analyzer($context, $analysis, $params) {
 
-    $terms = mauikeywordextractor_autokeyword($context, $analysis);
-    /*
-      $items = array();
-      if (is_array($terms)) {
-      foreach ($terms as $t) {
-      $items[] = "<span class=\"kwresearch_keyword\">{$t['term']}</span>";
-      }
-      }
-      $vars = array(
-      'items' => $items,
-      'type' => 'ol',
-      );
-      $out = theme('item_list', $vars);
-     */
 
-    $rows = array();
-    $header1 = array(
-        array('data' => t('Term')),
-        array('data' => t('Relevance')),
-    );
-    if (is_array($terms)) {
-        foreach ($terms as $v) {
-            $rows[] = array(
-                "<span class=\"kwresearch_keyword\">" . $v['term'] . "</span>",
-                number_format($v['relevance'], 0),
-            );
-        }
-    }
-    if (!$rows) {
-        $rows[] = array(array(
-                'data' => t('No keywords available.'),
-                'colspan' => count($header),
-        ));
-    }
+// call maui implementation with the parameters $context['body']
 
-    
  
-  $out= theme('table', array('header' => $header, 'rows' => $rows));
+  
+  $terms = mauikeywordextractor_autokeyword($context, $analysis);
+ 
+
+  $rows = array();
+  $header1 = array(
+    array('data' => t('Term')),
+   //array('data' => t('Relevance')),
+  );
+  if (is_array($terms)) {
+    foreach ($terms as $v) {
+      $rows[] = array(
+        "<span class=\"kwresearch_keyword\">" . $v . "</span>"
+      //  "<span class=\"rules_autotag\">" . $v . "</span>"
+      );
+    }
+  }
+  if (!$rows) {
+    $rows[] = array(array(
+        'data' => t('No keywords available.'),
+        'colspan' => count($header),
+    ));
+  }
+
+
+
+  $out = theme('table', array('header' => $header, 'rows' => $rows));
 
   $analysis['content'][] = contentanalysis_format_content($out, -1);
 
-  
-  
-   // send out content into a text file 
+  // send out content into a text file 
 
   if (isset($_POST['analyzers'])) {
     $content = $_POST['body'];
-    $file = fopen("/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/content.txt", "w");
+    $file = fopen("/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/content.txt", "w");
     fwrite($file, $content);
     fclose($file);
     //  print_r(error_get_last());
   }
-   return $analysis;
+
+  return $analysis;
 }
 
 /**
@@ -119,37 +110,42 @@ function mauikeywordextractor_analyzer($context, $analysis, $params) {
  * @see http://drupal.org/node/1354
  */
 function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
-    
-    /*
-     * Run maui from drupal
-     * 
-     */    
-     /*
+  /*
    * Run maui from drupal
    * 
    */
-  $lf = fopen("/tmp/log.txt", "w"); //error log
+// $file = fopen("/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/content.key", "w");
+//    //fwrite($file, $text);
+   
+// 
+// fclose($file);
+//exec("cd /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/ && touch /tmp/testfile.txt && java -cp /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/bin:/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/lib/*  maui.main.MauiModelBuilder -l /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
+exec("cd /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/ && touch /tmp/testfile.txt && java -cp /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/bin:/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/lib/*  maui.main.MauiTopicExtractor -l /var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
 
-  
- 
-  exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/* maui.main.MauiModelBuilder -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
-  exec("java -cp /home/rowshan/Downloads/Maui1.2/bin:/home/rowshan/Downloads/Maui1.2/lib/*  maui.main.MauiTopicExtractor -l /home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/ -m test -v none");
+//$filename = "/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/content.key";
+//unlink($filename);
 
-  
   // get te file content into drupal
-  $filename = "/home/rowshan/Downloads/Maui1.2/data/automatic_tagging/train/merge/content.key";
-  fwrite($lf, "full-content: " . file_get_contents($filename));
+  $filename = "/var/www/dru7/sites/all/modules/contentanalysis/Maui1.2/data/automatic_tagging/train/merge/content.key";
+  file_get_contents($filename);
   $terms = array();
   $handle = fopen($filename, "r"); // handle input files ,reading input file
+ $vid = taxonomy_vocabulary_machine_name_load('tags')->vid;
   while ($line = fgets($handle)) {
-    fwrite($lf, "line: " . $line );
-    array_push($terms, $line);
-  }
-  fclose($handle);
-  fclose($lf);
+  taxonomy_term_save((object) array(
+ 'name' => $line,
+ 'vid' => $vid,
+));
+ array_push($terms, $line); 
+    }
+    
   
-  /*
-  *Steps I need to follow:
+  
+  fclose($handle);
+  unlink($filename);
+
+  
+ /*
   * create a vocabulary  see website
   * save vocab. to db
   * load it from db --> so that you can get its new id
@@ -157,60 +153,17 @@ function mauikeywordextractor_autokeyword($context, &$analysis = NULL) {
   * for each term in $terms>
   * create a term with term as $name and id of vocab. that you just created
   * -save the term
-  */
+   *  */
+ //module_load_include('inc', 'rules', 'rules_autotag.module');
+  //$mauikeywordextractor=  rules_autotag_extract($terms, $terms);
   
-  module_load_include('inc', 'taxonomy', 'taxonomy.module');
-  module_load_include('inc', 'rules', 'rules_autotag.module');
+ //$mauikeywordextractor= rules_autotag_exact_match($terms,$vocabulary);// I tried to pass same terms as text and vocabulary 
   
-  $mauikeywordextractor= rules_autotag_exact($terms,$terms);// I tried to pass same terms as text and vocabulary 
-  
+  //$terms1= rules_autotag_exact_match($terms,$terms);// I tried to pass same terms as text and vocabulary 
   
   return $terms;
 }
 
 
 
-function rules_autotag_extract($text, $vocabulary) {
-  $extracted_tids = array();// an array for extracted term IDs
-  $terms = rules_autotag_get_term_names($vocabulary);
 
-  $text = rules_autotag_clean_text($text);//Converts term names to lower case.
-
-  // array_flip converts values of the into keys and keys into values
-  
-  $text_tokens = array_flip(rules_autotag_split_text($text)); 
-  
-  // array_intersect_key returns an array containing common keys among two or more arrays
-  
-    $matchings_term_splits = array_intersect_key($terms, $text_tokens);// here $term and $ text_tokens are two arrays.
-  //we compare these two arrays and find the common or intersection  terms 
-
-  // Loops over all matched splits and checks if a term name consists
-  // of multiple splits. If so, an additional text parsing for the whole
-  // term name is performed.
-  foreach ($matchings_term_splits as $results) { // iterate through each and every keys  in the array $matchings_term_splits
-    foreach ($results as $result) {// and search for an matched term in the array results[] and return that immediately
-      $tid = $result['tid'];// assigns term ID to array key term IDs 
-      
-      /* ata first it checks whether the term IDs exists in the extracted term. 
-       * Then if array  result has key= splitted. Then it checks
-       * what is the position of the key 'original_term_name' is exists in the
-       * the array $text and then if the key found then it assigns to the extracted term IDs
-       * Otherwise it assigns extracted term IDs directly to the term IDs once it found the term ID after in_array check       
-       */
-      /*  */
-      
-      if (!in_array($tid, $extracted_tids)) { // in_array checks whether the term ID exists in array $extracted_tids 
-        if ($result['splitted']) {
-          if (strpos($text, $result['original_term_name']) !== FALSE) {
-            $extracted_tids[] = $tid;
-          }
-        }
-        else {
-          $extracted_tids[] = $tid;
-        }
-      }
-    }
-  }
-  return $extracted_tids;
-}
